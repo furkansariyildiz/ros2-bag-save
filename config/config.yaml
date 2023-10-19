@@ -1,0 +1,6 @@
+/ros2_bag_recorder_node:
+  ros__parameters:
+    topics_info: 
+      - {"topic_name": "/chatter", "message_type": "std_msgs.msg", "data_type": "String", "callback_function_name": "chatter_callback", "queue_size": "10", "variable_name": "chatter_message"}
+
+    bag_file_direction: "/home/furkan/colcon_ws_galactic_outdoor/src/ros2_bag_save/bags/" 

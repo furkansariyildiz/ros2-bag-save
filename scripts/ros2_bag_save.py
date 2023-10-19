@@ -109,6 +109,7 @@ class RosbagRecorder(Node):
         @brief
         @param
         @return 
+        @source https://stackoverflow.com/questions/51064959/how-to-do-exec-definition-inside-class-python
         """
         for variable_name, callback_function_name in zip(self._variable_names, self._callback_functions):
             # exec("def " + callback_function_name + "(message):\n\tglobal " + variable_name + "\n\t" + variable_name + "=" + "message", globals())

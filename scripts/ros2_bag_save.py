@@ -70,6 +70,7 @@ class RosbagRecorder(Node):
         self.defineGlobalVariables()
 
 
+
     def importLibraries(self):
         """
         @brief
@@ -101,13 +102,19 @@ class RosbagRecorder(Node):
             exec(variable_name + "=" + data_type + "()")
 
 
+    def defineCallbackFunctions(self):
+        for variable_name, callback_function_name in zip(self._variable_names, self._callback_functions):
+            exec("def " + callback_function_name + "(message):\n\tglobal " + variable_name + "\n\t" + variable_name + "=" + "message", globals())
+
+
+
     def debug(self, message):
         """
         @brief
         @param
         @return
         """
-        self.get_logger().info(message)
+        self.get_logger().info(str(message))
 
 
 

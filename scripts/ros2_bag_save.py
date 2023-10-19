@@ -71,22 +71,42 @@ class RosbagRecorder(Node):
 
 
     def importLibraries(self):
+        """
+        @brief
+        @param
+        @return
+        """
         for message_type, data_type in zip(self._message_types, self._data_types):
             exec(("from " + message_type + " import " + data_type), globals())
 
     
     def defineMessages(self):
+        """
+        @brief
+        @param
+        @return
+        """
         for variable_name, data_type in zip(self._variable_names, self._data_types):
             exec("self." + variable_name + "=" + data_type + "()")
 
     
     def defineGlobalVariables(self):
+        """
+        @brief
+        @param
+        @return
+        """
         for variable_name, data_type in zip(self._variable_names, self._data_types):
             exec("global " + variable_name)
             exec(variable_name + "=" + data_type + "()")
 
 
     def debug(self, message):
+        """
+        @brief
+        @param
+        @return
+        """
         self.get_logger().info(message)
 
 

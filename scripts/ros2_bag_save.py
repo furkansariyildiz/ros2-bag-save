@@ -18,17 +18,32 @@ class RosbagRecorder(Node):
 
         self._rosbag_writer = rosbag2_py.SequentialWriter()
 
-        # self._topics_info = self.declare_parameter('topics_info', [])
+        self._topics_name = self.declare_parameter('topics_info.topics_name', [""])
+        self._message_type = self.declare_parameter('topics_info.message_type', [""])
+        self._data_type = self.declare_parameter('topics_info.data_type', [""])
+        self._queue_size = self.declare_parameter('topics_info.queue_size', [0])
+        self._variable_name = self.declare_parameter('topics_info.variable_name', [""])
         self._rosbag_file_name = self.declare_parameter('bag_file_direction', "/home/$USER/bags/")
 
 
-        # self._topics_info = self.get_parameter('topics_info').get_parameter_value()
+        self._topics_name = self.get_parameter('topics_info.topics_name').get_parameter_value().string_array_value
+        self._message_type = self.get_parameter('topics_info.message_type').get_parameter_value().string_array_value
+        self._data_type = self.get_parameter('topics_info.data_type').get_parameter_value().string_array_value
+        self._queue_size = self.get_parameter('topics_info.queue_size').get_parameter_value().integer_array_value
+        self._variable_name = self.get_parameter('topics_info.variable_name').get_parameter_value().string_array_value
         self._rosbag_file_name = self.get_parameter('bag_file_direction').get_parameter_value().string_value
 
-        print("Rosbag file name: " + str(self._rosbag_file_name))
+
+        # Debugging Parameters
+        self.get_logger().info("Topics Name: " + str(self._topics_name))
+        self.get_logger().info("Message Types: " + str(self._message_type))
+        self.get_logger().info("Data Types: " + str(self._message_type))
+        self.get_logger().info("Queue Size: " + str(self._queue_size))
+        self.get_logger().info("Variable Name: " + str(self._variable_name))
+        self.get_logger().info("Rosbag File Name Direction: " + str(self._rosbag_file_name))
 
         storage_options = rosbag2_py.StorageOptions(
-            uri=self._rosbag_file_name + "14/",
+            uri=self._rosbag_file_name + "20/",
             storage_id='sqlite3'
         )
 

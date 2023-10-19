@@ -68,6 +68,8 @@ class RosbagRecorder(Node):
         self.importLibraries()
         self.defineMessages()
         self.defineGlobalVariables()
+        self.defineCallbackFunctions()
+        self.defineSubscribers()
 
 
 
@@ -103,9 +105,19 @@ class RosbagRecorder(Node):
 
 
     def defineCallbackFunctions(self):
+        """
+        @brief
+        @param
+        @return 
+        """
         for variable_name, callback_function_name in zip(self._variable_names, self._callback_functions):
-            exec("def " + callback_function_name + "(message):\n\tglobal " + variable_name + "\n\t" + variable_name + "=" + "message", globals())
+            # exec("def " + callback_function_name + "(message):\n\tglobal " + variable_name + "\n\t" + variable_name + "=" + "message", globals())
+            exec("RosbagRecorder." + callback_function_name + "(self, message): self." + variable_name + "= message", globals())
 
+
+    def defineSubscribers(self):
+        for topic_name, data_type, callback_function_name, queue_size in zip(self._topic_names, self._data_types, self._callback_functions, self._queue_sizes):
+            exec("self.create_subscription(" + data_type + ", '" + topic_name + "', " + "self. " + callback_function_name + ", " + str(queue_size) + ")")
 
 
     def debug(self, message):
@@ -120,7 +132,6 @@ class RosbagRecorder(Node):
 
     # def chatterCallback(self, message):
     #     self._rosbag_writer.write('chatter', serialize_message(message), self.get_clock().now().nanoseconds)
-
 
 
 

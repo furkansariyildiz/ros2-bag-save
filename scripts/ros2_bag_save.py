@@ -18,53 +18,67 @@ class RosbagRecorder(Node):
 
         self._rosbag_writer = rosbag2_py.SequentialWriter()
 
-        self._topics_name = self.declare_parameter('topics_info.topics_name', [""])
-        self._message_type = self.declare_parameter('topics_info.message_type', [""])
-        self._data_type = self.declare_parameter('topics_info.data_type', [""])
-        self._queue_size = self.declare_parameter('topics_info.queue_size', [0])
-        self._variable_name = self.declare_parameter('topics_info.variable_name', [""])
+        self._topic_names = self.declare_parameter('topics_info.topic_names', [""])
+        self._message_types = self.declare_parameter('topics_info.message_types', [""])
+        self._data_types = self.declare_parameter('topics_info.data_types', [""])
+        self._callback_functions = self.declare_parameter('topics_info.callback_function', [""])
+        self._queue_sizes = self.declare_parameter('topics_info.queue_sizes', [0])
+        self._variable_names = self.declare_parameter('topics_info.variable_names', [""])
         self._rosbag_file_name = self.declare_parameter('bag_file_direction', "/home/$USER/bags/")
 
 
-        self._topics_name = self.get_parameter('topics_info.topics_name').get_parameter_value().string_array_value
-        self._message_type = self.get_parameter('topics_info.message_type').get_parameter_value().string_array_value
-        self._data_type = self.get_parameter('topics_info.data_type').get_parameter_value().string_array_value
-        self._queue_size = self.get_parameter('topics_info.queue_size').get_parameter_value().integer_array_value
-        self._variable_name = self.get_parameter('topics_info.variable_name').get_parameter_value().string_array_value
+        self._topic_names = self.get_parameter('topics_info.topic_names').get_parameter_value().string_array_value
+        self._message_types = self.get_parameter('topics_info.message_types').get_parameter_value().string_array_value
+        self._data_types = self.get_parameter('topics_info.data_types').get_parameter_value().string_array_value
+        self._callback_functions = self.get_parameter('topics_info.callback_function').get_parameter_value().string_array_value
+        self._queue_sizes = self.get_parameter('topics_info.queue_sizes').get_parameter_value().integer_array_value
+        self._variable_names = self.get_parameter('topics_info.variable_names').get_parameter_value().string_array_value
         self._rosbag_file_name = self.get_parameter('bag_file_direction').get_parameter_value().string_value
 
 
         # Debugging Parameters
-        self.get_logger().info("Topics Name: " + str(self._topics_name))
-        self.get_logger().info("Message Types: " + str(self._message_type))
-        self.get_logger().info("Data Types: " + str(self._message_type))
-        self.get_logger().info("Queue Size: " + str(self._queue_size))
-        self.get_logger().info("Variable Name: " + str(self._variable_name))
-        self.get_logger().info("Rosbag File Name Direction: " + str(self._rosbag_file_name))
-
-        storage_options = rosbag2_py.StorageOptions(
-            uri=self._rosbag_file_name + "20/",
-            storage_id='sqlite3'
-        )
-
-        converter_options = rosbag2_py.ConverterOptions('', '')
-        self._rosbag_writer.open(storage_options, converter_options)
-
-        topic_info = rosbag2_py.TopicMetadata(
-            name='chatter',
-            type='std_msgs/msg/String',
-            serialization_format='cdr'
-        )
-
-        self._rosbag_writer.create_topic(topic_info)
-
-        self._subscription = self.create_subscription(String, 'chatter', self.chatterCallback, 10)
+        self.debug("Topics Name: " + str(self._topic_names))
+        self.debug("Message Types: " + str(self._message_types))
+        self.debug("Data Types: " + str(self._data_types))
+        self.debug("Callback Functions: " + str(self._callback_functions))
+        self.debug("Queue Size: " + str(self._queue_sizes))
+        self.debug("Variable Names: " + str(self._variable_names))
+        self.debug("Rosbag File Name Direction: " + str(self._rosbag_file_name))
 
 
-        
+        # storage_options = rosbag2_py.StorageOptions(
+        #     uri=self._rosbag_file_name + "20/",
+        #     storage_id='sqlite3'
+        # )
 
-    def chatterCallback(self, message):
-        self._rosbag_writer.write('chatter', serialize_message(message), self.get_clock().now().nanoseconds)
+        # converter_options = rosbag2_py.ConverterOptions('', '')
+        # self._rosbag_writer.open(storage_options, converter_options)
+
+        # topic_info = rosbag2_py.TopicMetadata(
+        #     name='chatter',
+        #     type='std_msgs/msg/String',
+        #     serialization_format='cdr'
+        # )
+
+        # self._rosbag_writer.create_topic(topic_info)
+
+        # self._subscription = self.create_subscription(String, 'chatter', self.chatterCallback, 10)
+
+
+        self.importLibraries()
+
+    def importLibraries(self):
+        for message_type, data_type in zip(self._message_types, self._data_types):
+            exec(("from " + message_type + " import " + data_type), globals())
+
+
+    def debug(self, message):
+        self.get_logger().info(message)
+
+
+
+    # def chatterCallback(self, message):
+    #     self._rosbag_writer.write('chatter', serialize_message(message), self.get_clock().now().nanoseconds)
 
 
 

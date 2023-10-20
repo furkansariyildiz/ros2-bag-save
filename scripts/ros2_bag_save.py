@@ -35,6 +35,7 @@ class RosbagRecorder(Node):
         self._variable_names = self.get_parameter('topics_info.variable_names').get_parameter_value().string_array_value
         self._rosbag_file_name = self.get_parameter('bag_file_direction').get_parameter_value().string_value
 
+        self._function_list = {}
 
         # Debugging Parameters
         self.debug("Topics Name: " + str(self._topic_names))
@@ -112,8 +113,11 @@ class RosbagRecorder(Node):
         @source https://stackoverflow.com/questions/51064959/how-to-do-exec-definition-inside-class-python
         """
         for variable_name, callback_function_name in zip(self._variable_names, self._callback_functions):
-            # exec("def " + callback_function_name + "(message):\n\tglobal " + variable_name + "\n\t" + variable_name + "=" + "message", globals())
-            exec("RosbagRecorder." + callback_function_name + "(self, message): self." + variable_name + "= message", globals())
+            exec('def ' + callback_function_name + '(self, message): self.' + variable_name + "= message;", {'__builtins__': {}}, self._function_list)
+
+        for function in self._function_list:
+            if not hasattr(self.__class__, function):
+                setattr(self.__class__, function, self._function_list[function])
 
 
     def defineSubscribers(self):

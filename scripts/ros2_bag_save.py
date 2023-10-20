@@ -21,6 +21,7 @@ class RosbagRecorder(Node):
         self._topic_names = self.declare_parameter('topics_info.topic_names', [""])
         self._message_types = self.declare_parameter('topics_info.message_types', [""])
         self._data_types = self.declare_parameter('topics_info.data_types', [""])
+        self._interface_types = self.declare_parameter('topics_info.interface_types', [""])
         self._callback_functions = self.declare_parameter('topics_info.callback_function', [""])
         self._queue_sizes = self.declare_parameter('topics_info.queue_sizes', [0])
         self._variable_names = self.declare_parameter('topics_info.variable_names', [""])
@@ -30,6 +31,7 @@ class RosbagRecorder(Node):
         self._topic_names = self.get_parameter('topics_info.topic_names').get_parameter_value().string_array_value
         self._message_types = self.get_parameter('topics_info.message_types').get_parameter_value().string_array_value
         self._data_types = self.get_parameter('topics_info.data_types').get_parameter_value().string_array_value
+        self._interface_types = self.get_parameter('topics_info.interface_types').get_parameter_value().string_array_value
         self._callback_functions = self.get_parameter('topics_info.callback_function').get_parameter_value().string_array_value
         self._queue_sizes = self.get_parameter('topics_info.queue_sizes').get_parameter_value().integer_array_value
         self._variable_names = self.get_parameter('topics_info.variable_names').get_parameter_value().string_array_value
@@ -101,8 +103,9 @@ class RosbagRecorder(Node):
         @return
         """
         for variable_name, data_type in zip(self._variable_names, self._data_types):
-            exec("global " + variable_name)
-            exec(variable_name + "=" + data_type + "()")
+            # exec("global " + variable_name)
+            exec("self." + variable_name + "=" + data_type + "()")
+    
 
 
     def defineCallbackFunctions(self):
@@ -113,7 +116,11 @@ class RosbagRecorder(Node):
         @source https://stackoverflow.com/questions/51064959/how-to-do-exec-definition-inside-class-python
         """
         for topic_name, variable_name, callback_function_name in zip(self._topic_names, self._variable_names, self._callback_functions):
-            exec(f'def ' + callback_function_name + '(self, message): self.' + variable_name + "= message; self._rosbag_writer.write('" + topic_name + "', serialize_message(message), self.get_clock().now().nanoseconds" + ")", {'__builtins__': {}}, self._function_list)
+            # exec('def ' + callback_function_name + '(self, message): self.' + variable_name + "= message; self.debug(message); self._rosbag_writer.write('" + topic_name + "', serialize_message(message), "  +  "self.get_clock().now().nanoseconds" + ")", {'__builtins__': {}}, self._function_list)
+            # exec('def ' + callback_function_name + '(self, message): self.' + variable_name + "= message; self.debug(message); self._rosbag_writer.write('" + topic_name + "', serialize_message(self." + variable_name + "), "  +  "self.get_clock().now().nanoseconds" + ")", {'__builtins__': {}}, self._function_list)
+            exec('def ' + callback_function_name + '(self, message): self.' + variable_name + "= message; self.debug(message); self._rosbag_writer.write('" + topic_name + "', serialize_message(message), "  +  "self.get_clock().now().nanoseconds" + ")", globals(), self._function_list)
+        
+
 
         for function in self._function_list:
             if not hasattr(self.__class__, function):
@@ -126,10 +133,10 @@ class RosbagRecorder(Node):
         @param
         @return
         """
-        for topic_name, message_type, data_type, callback_function_name, queue_size in zip(self._topic_names, self._message_types, self._data_types, self._callback_functions, self._queue_sizes):
+        for topic_name, message_type, data_type, interface_type, callback_function_name, queue_size in zip(self._topic_names, self._message_types, self._data_types, self._interface_types, self._callback_functions, self._queue_sizes):
             exec("self.create_subscription(" + data_type + ", '" + topic_name + "', " + "self. " + callback_function_name + ", " + str(queue_size) + ")")
             # exec("topic_info = rosbag2_py.TopicMetaData(name='" + topic_name + "', type='" + message_type + "', serialization_format='cdr'" + ")")
-            topic_info = rosbag2_py.TopicMetadata(name=str(topic_name), type=str(message_type), serialization_format='cdr')
+            topic_info = rosbag2_py.TopicMetadata(name=str(topic_name), type=str(interface_type), serialization_format='cdr')
             self._rosbag_writer.create_topic(topic_info)
 
     def debug(self, message):
@@ -138,7 +145,7 @@ class RosbagRecorder(Node):
         @param
         @return
         """
-        self.get_logger().info(str(message))
+        self.get_logger().info("Message: " + str(message))
 
 
 

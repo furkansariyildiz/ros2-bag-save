@@ -4,6 +4,7 @@
       topic_names: ["/chatter", "/cmd_vel"]
       message_types: ["std_msgs.msg", "geometry_msgs.msg"]
       data_types: ["String", "Twist"]
+      interface_types: ["std_msgs/msg/String", "geometry_msgs/msg/Twist"]
       callback_function: ["chatterCallback", "cmdVelCallback"]
       queue_sizes: [10, 10]
       variable_names: ["chatter_message", "cmd_vel_message"]

@@ -18,6 +18,7 @@ class RosbagRecorder(Node):
 
         self._rosbag_writer = rosbag2_py.SequentialWriter()
 
+        # Declaering Parameters
         self._topic_names = self.declare_parameter('topics_info.topic_names', [""])
         self._message_types = self.declare_parameter('topics_info.message_types', [""])
         self._data_types = self.declare_parameter('topics_info.data_types', [""])
@@ -27,7 +28,7 @@ class RosbagRecorder(Node):
         self._variable_names = self.declare_parameter('topics_info.variable_names', [""])
         self._rosbag_file_name = self.declare_parameter('bag_file_direction', "/home/$USER/bags/")
 
-
+        # Getting Parameters from Config YAML file
         self._topic_names = self.get_parameter('topics_info.topic_names').get_parameter_value().string_array_value
         self._message_types = self.get_parameter('topics_info.message_types').get_parameter_value().string_array_value
         self._data_types = self.get_parameter('topics_info.data_types').get_parameter_value().string_array_value
@@ -37,9 +38,7 @@ class RosbagRecorder(Node):
         self._variable_names = self.get_parameter('topics_info.variable_names').get_parameter_value().string_array_value
         self._rosbag_file_name = self.get_parameter('bag_file_direction').get_parameter_value().string_value
 
-        self._function_list = {}
-
-        
+        self._function_list = {}        
 
         # Debugging Parameters
         self.debug("Topics Name: " + str(self._topic_names))
@@ -50,27 +49,20 @@ class RosbagRecorder(Node):
         self.debug("Variable Names: " + str(self._variable_names))
         self.debug("Rosbag File Name Direction: " + str(self._rosbag_file_name))
 
-
+        # Configurating storage options
         storage_options = rosbag2_py.StorageOptions(
-            uri=self._rosbag_file_name + "24/",
+            uri=self._rosbag_file_name + "25/",
             storage_id='sqlite3'
         )
 
+        # Configurating converter options
         converter_options = rosbag2_py.ConverterOptions('', '')
         self._rosbag_writer.open(storage_options, converter_options)
 
-        # topic_info = rosbag2_py.TopicMetadata(
-        #     name='chatter',
-        #     type='std_msgs/msg/String',
-        #     serialization_format='cdr'
-        # )
-
-        # self._rosbag_writer.create_topic(topic_info)
-
-
+        # Calling all functions one by one
         self.importLibraries()
         self.defineMessages()
-        self.defineGlobalVariables()
+        self.defineClassVariables()
         self.defineCallbackFunctions()
         self.defineSubscribers()
 
@@ -78,79 +70,74 @@ class RosbagRecorder(Node):
 
     def importLibraries(self):
         """
-        @brief
-        @param
-        @return
+        @brief Importing ros2 message (interface) libraries via using parameters which are getted from config.yaml file.
+        @param self
+        @return None
         """
         for message_type, data_type in zip(self._message_types, self._data_types):
             exec(("from " + message_type + " import " + data_type), globals())
 
+
     
     def defineMessages(self):
         """
-        @brief
-        @param
-        @return
+        @brief Defining messages as class object 
+        @param self
+        @return None
         """
         for variable_name, data_type in zip(self._variable_names, self._data_types):
             exec("self." + variable_name + "=" + data_type + "()")
 
-    
-    def defineGlobalVariables(self):
+
+
+    def defineClassVariables(self):
         """
-        @brief
-        @param
-        @return
+        @brief Defining class variables to get variables on exec() function.
+        @param self
+        @return None
         """
         for variable_name, data_type in zip(self._variable_names, self._data_types):
-            # exec("global " + variable_name)
             exec("self." + variable_name + "=" + data_type + "()")
     
 
 
     def defineCallbackFunctions(self):
         """
-        @brief
-        @param
-        @return 
+        @brief Defining Callback functions to use on ROS2 Subscribers.
+        @param self
+        @return None
         @source https://stackoverflow.com/questions/51064959/how-to-do-exec-definition-inside-class-python
         """
         for topic_name, variable_name, callback_function_name in zip(self._topic_names, self._variable_names, self._callback_functions):
-            # exec('def ' + callback_function_name + '(self, message): self.' + variable_name + "= message; self.debug(message); self._rosbag_writer.write('" + topic_name + "', serialize_message(message), "  +  "self.get_clock().now().nanoseconds" + ")", {'__builtins__': {}}, self._function_list)
-            # exec('def ' + callback_function_name + '(self, message): self.' + variable_name + "= message; self.debug(message); self._rosbag_writer.write('" + topic_name + "', serialize_message(self." + variable_name + "), "  +  "self.get_clock().now().nanoseconds" + ")", {'__builtins__': {}}, self._function_list)
             exec('def ' + callback_function_name + '(self, message): self.' + variable_name + "= message; self.debug(message); self._rosbag_writer.write('" + topic_name + "', serialize_message(message), "  +  "self.get_clock().now().nanoseconds" + ")", globals(), self._function_list)
         
-
 
         for function in self._function_list:
             if not hasattr(self.__class__, function):
                 setattr(self.__class__, function, self._function_list[function])
 
 
+
     def defineSubscribers(self):
         """
-        @brief
-        @param
-        @return
+        @brief Defining subscribers via using topic_name, message_type, data_type, interface_type, callback_function_name and queue_size.
+        @param self
+        @return None
         """
         for topic_name, message_type, data_type, interface_type, callback_function_name, queue_size in zip(self._topic_names, self._message_types, self._data_types, self._interface_types, self._callback_functions, self._queue_sizes):
             exec("self.create_subscription(" + data_type + ", '" + topic_name + "', " + "self. " + callback_function_name + ", " + str(queue_size) + ")")
-            # exec("topic_info = rosbag2_py.TopicMetaData(name='" + topic_name + "', type='" + message_type + "', serialization_format='cdr'" + ")")
             topic_info = rosbag2_py.TopicMetadata(name=str(topic_name), type=str(interface_type), serialization_format='cdr')
             self._rosbag_writer.create_topic(topic_info)
 
+
+
     def debug(self, message):
         """
-        @brief
-        @param
-        @return
+        @brief Debugging messages
+        @param message (string, int etc.) Debugged message
+        @return None
         """
         self.get_logger().info("Message: " + str(message))
-
-
-
-    # def chatterCallback(self, message):
-    #     self._rosbag_writer.write('chatter', serialize_message(message), self.get_clock().now().nanoseconds)
 
 
 

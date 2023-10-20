@@ -9,6 +9,4 @@
       queue_sizes: [10, 10]
       variable_names: ["chatter_message", "cmd_vel_message"]
 
-    # [["/chatter", "std_msgs.msg", "String", "chatterCallback", "10", "chatter_message"], ["/talker", "std_msgs.msg", "String", "chatterCallback", "10", "chatter_message"]] 
-
     bag_file_direction: "/home/furkan/colcon_ws_galactic_outdoor/src/ros2_bag_save/bags/" 

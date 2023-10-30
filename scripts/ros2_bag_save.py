@@ -8,7 +8,7 @@ from rclpy.node import Node
 from ament_index_python.packages import get_package_share_directory
 from rclpy.serialization import serialize_message
 from std_msgs.msg import String
-
+from datetime import datetime
 
 class RosbagRecorder(Node):
     def __init__(self):
@@ -50,10 +50,8 @@ class RosbagRecorder(Node):
         self.debug("Rosbag File Name Direction: " + str(self._rosbag_file_name))
 
         # Configurating storage options
-        storage_options = rosbag2_py.StorageOptions(
-            uri=self._rosbag_file_name + "25/",
-            storage_id='sqlite3'
-        )
+        self._date_time = str(datetime.now()).replace(" ", "-").replace(":", "-")
+        storage_options = rosbag2_py.StorageOptions(uri=self._rosbag_file_name + str(self._date_time) + "/", storage_id='sqlite3')
 
         # Configurating converter options
         converter_options = rosbag2_py.ConverterOptions('', '')

@@ -9,4 +9,4 @@
       queue_sizes: [10, 10]
       variable_names: ["chatter_message", "cmd_vel_message"]
 
-    bag_file_direction: "/home/furkan/colcon_ws_galactic_outdoor/src/ros2_bag_save/bags/" 
+    bag_file_direction: "/home/furkan/colcon_ws_galactic_outdoor/src/ros2-bag-save/bags/" 
